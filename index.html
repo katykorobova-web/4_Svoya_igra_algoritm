@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Своя Игра — Алгоритмы · 5 класс</title>
+<style>
+  /* ===== Переменные темы ===== */
+  :root{
+    --bg:#f4f7fb;
+    --bg-elev:#ffffff;
+    --surface:#ffffff;
+    --border:#e2e8f0;
+    --text:#0f172a;
+    --text-muted:#475569;
+    --text-soft:#64748b;
+    --accent:#2563eb;
+    --accent-dark:#1d4ed8;
+    --accent-soft:#dbeafe;
+    --accent-contrast:#ffffff;
+    --success:#16a34a;
+    --success-soft:#dcfce7;
+    --danger:#dc2626;
+    --danger-soft:#fee2e2;
+    --warning:#f59e0b;
+    --shadow-sm:0 1px 2px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.08);
+    --shadow-md:0 4px 12px rgba(15,23,42,.08), 0 2px 4px rgba(15,23,42,.06);
+    --shadow-lg:0 20px 40px rgba(15,23,42,.18), 0 8px 16px rgba(15,23,42,.10);
+    --radius-sm:8px;
+    --radius:14px;
+    --radius-lg:20px;
+    --focus:0 0 0 3px var(--accent-soft), 0 0 0 5px var(--accent);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+
+  :focus{outline:none}
+  :focus-visible{
+    outline:none;
+    box-shadow:var(--focus);
+    border-radius:var(--radius-sm);
+  }
+
+  /* ===== Шапка ===== */
+  header.app-header{
+    background:linear-gradient(135deg,var(--accent) 0%,var(--accent-dark) 100%);
+    color:#fff;
+    padding:18px 16px;
+    box-shadow:var(--shadow-md);
+    position:sticky;
+    top:0;
+    z-index:10;
+  }
+  .header-inner{
+    max-width:1100px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-weight:700;
+    font-size:1.05rem;
+  }
+  .brand-mark{
+    width:36px;height:36px;
+    background:rgba(255,255,255,.18);
+    border:1px solid rgba(255,255,255,.35);
+    border-radius:10px;
+    display:grid;place-items:center;
+    font-size:1.1rem;
+  }
+  .score-pill{
+    background:rgba(255,255,255,.18);
+    border:1px solid rgba(255,255,255,.35);
+    padding:8px 14px;
+    border-radius:999px;
+    font-weight:600;
+    font-size:.95rem;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .score-pill .score-value{
+    font-variant-numeric:tabular-nums;
+    min-width:36px;
+    text-align:right;
+  }
+
+  main{
+    max-width:1100px;
+    margin:0 auto;
+    padding:20px 16px 60px;
+  }
+
+  .screen{display:none; animation:fadeIn .3s ease}
+  .screen.active{display:block}
+  @keyframes fadeIn{
+    from{opacity:0; transform:translateY(6px)}
+    to{opacity:1; transform:translateY(0)}
+  }
+
+  /* ===== Стартовый экран ===== */
+  .hero{
+    background:var(--surface);
+    border-radius:var(--radius-lg);
+    padding:28px 22px;
+    box-shadow:var(--shadow-md);
+    border:1px solid var(--border);
+  }
+  .hero h1{
+    margin:0 0 6px;
+    font-size:1.7rem;
+    line-height:1.2;
+    color:var(--text);
+  }
+  .hero .subtitle{
+    color:var(--text-muted);
+    margin:0 0 22px;
+    font-size:1rem;
+  }
+  .hero-grid{
+    display:grid;
+    gap:16px;
+    grid-template-columns:1fr;
+  }
+  @media (min-width:720px){
+    .hero-grid{grid-template-columns:1fr 1fr}
+    .hero h1{font-size:2rem}
+  }
+  .rules-card{
+    background:var(--accent-soft);
+    border:1px solid #bfdbfe;
+    border-radius:var(--radius);
+    padding:18px;
+  }
+  .rules-card h2{
+    margin:0 0 10px;
+    font-size:1.05rem;
+    color:var(--accent-dark);
+    display:flex;align-items:center;gap:8px;
+  }
+  .rules-card ol{
+    margin:0;
+    padding-left:20px;
+    color:var(--text);
+    font-size:.95rem;
+  }
+  .rules-card ol li{margin-bottom:6px}
+
+  .info-card{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:18px;
+  }
+  .info-card h2{
+    margin:0 0 10px;
+    font-size:1.05rem;
+    color:var(--text);
+    display:flex;align-items:center;gap:8px;
+  }
+  .info-list{
+    list-style:none;
+    padding:0;
+    margin:0;
+  }
+  .info-list li{
+    padding:8px 0;
+    border-bottom:1px dashed var(--border);
+    font-size:.95rem;
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .info-list li:last-child{border-bottom:none}
+  .info-list .val{
+    font-weight:700;
+    color:var(--accent-dark);
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* ===== Кнопки ===== */
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:12px 22px;
+    border:none;
+    border-radius:var(--radius-sm);
+    font-size:1rem;
+    font-weight:600;
+    cursor:pointer;
+    min-height:44px;
+    transition:transform .08s, background .15s, box-shadow .15s;
+    font-family:inherit;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{
+    background:var(--accent);
+    color:var(--accent-contrast);
+    box-shadow:var(--shadow-sm);
+  }
+  .btn-primary:hover{background:var(--accent-dark)}
+  .btn-secondary{
+    background:var(--bg-elev);
+    color:var(--text);
+    border:1px solid var(--border);
+  }
+  .btn-secondary:hover{background:var(--bg)}
+  .btn-ghost{
+    background:transparent;
+    color:var(--text-muted);
+    padding:8px 12px;
+  }
+  .btn-ghost:hover{color:var(--text); background:var(--bg)}
+  .btn-row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .btn-row .btn{flex:1; min-width:140px}
+
+  /* ===== Прогресс ===== */
+  .progress-bar{
+    margin:20px 0 8px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-size:.9rem;
+    color:var(--text-muted);
+  }
+  .progress-track{
+    flex:1;
+    height:8px;
+    background:var(--border);
+    border-radius:999px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--accent),var(--accent-dark));
+    width:0%;
+    transition:width .4s ease;
+  }
+
+  /* ===== Игровое поле ===== */
+  .board-wrap{
+    background:var(--surface);
+    border-radius:var(--radius-lg);
+    padding:16px;
+    box-shadow:var(--shadow-md);
+    border:1px solid var(--border);
+    overflow-x:auto;
+  }
+  .board{
+    display:grid;
+    grid-template-columns:repeat(5, minmax(110px, 1fr));
+    gap:8px;
+    min-width:560px;
+  }
+  .cat-head{
+    background:linear-gradient(180deg,var(--accent),var(--accent-dark));
+    color:#fff;
+    padding:14px 8px;
+    border-radius:var(--radius-sm);
+    text-align:center;
+    font-weight:700;
+    font-size:.85rem;
+    line-height:1.25;
+    min-height:80px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .cell{
+    background:var(--bg-elev);
+    border:2px solid var(--accent-soft);
+    border-radius:var(--radius-sm);
+    padding:18px 8px;
+    text-align:center;
+    font-weight:700;
+    font-size:1.3rem;
+    color:var(--accent-dark);
+    cursor:pointer;
+    min-height:70px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:transform .1s, background .15s, border-color .15s;
+    font-variant-numeric:tabular-nums;
+  }
+  .cell:hover:not([disabled]){
+    background:var(--accent-soft);
+    border-color:var(--accent);
+    transform:translateY(-2px);
+  }
+  .cell[disabled]{
+    background:var(--bg);
+    color:var(--text-soft);
+    cursor:not-allowed;
+    border-color:var(--border);
+    opacity:.55;
+  }
+  .cell[disabled]::after{
+    content:"✓";
+    margin-left:6px;
+    color:var(--success);
+    font-size:1rem;
+  }
+
+  /* ===== Модальное окно ===== */
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(15,23,42,.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+    z-index:100;
+    animation:fadeIn .2s ease;
+  }
+  .modal-overlay.active{display:flex}
+  .modal{
+    background:var(--surface);
+    border-radius:var(--radius-lg);
+    max-width:560px;
+    width:100%;
+    max-height:90vh;
+    overflow-y:auto;
+    box-shadow:var(--shadow-lg);
+    animation:popIn .25s ease;
+  }
+  @keyframes popIn{
+    from{opacity:0; transform:scale(.94)}
+    to{opacity:1; transform:scale(1)}
+  }
+  .modal-header{
+    padding:18px 20px;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+  }
+  .modal-header .cat-label{
+    font-size:.85rem;
+    color:var(--text-muted);
+    font-weight:500;
+  }
+  .modal-header .value-label{
+    background:var(--accent);
+    color:#fff;
+    padding:4px 12px;
+    border-radius:999px;
+    font-weight:700;
+    font-size:.95rem;
+  }
+  .modal-close{
+    background:transparent;
+    border:none;
+    font-size:1.4rem;
+    color:var(--text-muted);
+    cursor:pointer;
+    width:36px;height:36px;
+    border-radius:50%;
+    display:grid;place-items:center;
+  }
+  .modal-close:hover{background:var(--bg); color:var(--text)}
+  .modal-body{padding:22px 20px}
+  .question-text{
+    font-size:1.1rem;
+    line-height:1.55;
+    color:var(--text);
+    margin:0 0 18px;
+    font-weight:500;
+  }
+  .answer-area{
+    background:var(--bg);
+    border-radius:var(--radius);
+    padding:16px;
+    margin-bottom:16px;
+  }
+  .answer-area label{
+    display:block;
+    font-weight:600;
+    margin-bottom:8px;
+    font-size:.9rem;
+  }
+  .answer-area input{
+    width:100%;
+    padding:12px 14px;
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    font-size:1rem;
+    background:#fff;
+    min-height:44px;
+  }
+  .answer-area input:focus-visible{
+    border-color:var(--accent);
+    box-shadow:var(--focus);
+  }
+  .result-box{
+    padding:14px 16px;
+    border-radius:var(--radius-sm);
+    margin:14px 0;
+    font-size:.95rem;
+    display:none;
+  }
+  .result-box.show{display:block; animation:fadeIn .25s ease}
+  .result-box.correct{
+    background:var(--success-soft);
+    color:#14532d;
+    border:1px solid #86efac;
+  }
+  .result-box.wrong{
+    background:var(--danger-soft);
+    color:#7f1d1d;
+    border:1px solid #fca5a5;
+  }
+  .result-box strong{display:block; margin-bottom:4px}
+  .explanation{
+    background:var(--accent-soft);
+    border-left:4px solid var(--accent);
+    padding:12px 14px;
+    border-radius:var(--radius-sm);
+    margin:12px 0;
+    font-size:.92rem;
+    color:var(--text);
+    display:none;
+  }
+  .explanation.show{display:block; animation:fadeIn .25s ease}
+  .modal-footer{
+    padding:16px 20px;
+    border-top:1px solid var(--border);
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .modal-footer .btn{flex:1; min-width:120px}
+
+  /* ===== Финальный экран ===== */
+  .final-card{
+    background:var(--surface);
+    border-radius:var(--radius-lg);
+    padding:32px 24px;
+    box-shadow:var(--shadow-md);
+    border:1px solid var(--border);
+    text-align:center;
+  }
+  .final-icon{
+    width:80px;height:80px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-dark));
+    border-radius:50%;
+    margin:0 auto 16px;
+    display:grid;place-items:center;
+    font-size:2.4rem;
+    color:#fff;
+  }
+  .final-card h2{
+    margin:0 0 6px;
+    font-size:1.6rem;
+  }
+  .final-card .subtitle{
+    color:var(--text-muted);
+    margin:0 0 22px;
+  }
+  .final-score{
+    background:linear-gradient(135deg,var(--accent-soft),#eff6ff);
+    border:1px solid #bfdbfe;
+    border-radius:var(--radius);
+    padding:22px;
+    margin:18px 0 22px;
+  }
+  .final-score .label{
+    color:var(--text-muted);
+    font-size:.9rem;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    margin-bottom:6px;
+  }
+  .final-score .value{
+    font-size:2.4rem;
+    font-weight:800;
+    color:var(--accent-dark);
+    font-variant-numeric:tabular-nums;
+  }
+  .final-score .max{
+    color:var(--text-soft);
+    font-size:.95rem;
+    margin-top:4px;
+  }
+  .final-verdict{
+    font-size:1.05rem;
+    color:var(--text);
+    margin:14px 0 22px;
+    padding:12px;
+    background:var(--bg);
+    border-radius:var(--radius-sm);
+  }
+  .stats-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-bottom:22px;
+  }
+  .stat{
+    background:var(--bg);
+    border-radius:var(--radius-sm);
+    padding:12px 8px;
+  }
+  .stat .num{
+    font-size:1.4rem;
+    font-weight:700;
+    color:var(--accent-dark);
+    font-variant-numeric:tabular-nums;
+  }
+  .stat .lbl{
+    font-size:.78rem;
+    color:var(--text-muted);
+    margin-top:2px;
+  }
+
+  .mt-12{margin-top:12px}
+  .text-center{text-align:center}
+
+  @media (max-width:520px){
+    .hero{padding:22px 16px}
+    .hero h1{font-size:1.45rem}
+    .board{gap:6px}
+    .cat-head{font-size:.78rem; padding:10px 6px; min-height:70px}
+    .cell{font-size:1.1rem; padding:14px 6px; min-height:60px}
+    .modal-body{padding:18px 16px}
+    .final-card{padding:24px 18px}
+    .final-score .value{font-size:2rem}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================
+   СВОЯ ИГРА — Алгоритмы · 5 класс
+   Структура: constants → state → render → handlers → init
+   ========================================================= */
+
+/* ---------- КОНСТАНТЫ: категории и вопросы ---------- */
+const CATEGORIES = [
+  {
+    id:'exec',
+    name:'Исполнители и среда',
+    questions:[
+      {value:100, q:'Как называют объект или устройство, которое выполняет заранее заданный набор команд?',
+       a:'Исполнитель', accept:['исполнитель'],
+       hint:'Это общее название для того, кто (или что) выполняет алгоритм.'},
+      {value:200, q:'Как называется окружающая исполнителя обстановка, в которой он работает и в которой действуют его команды?',
+       a:'Среда исполнителя', accept:['среда исполнителя','среда'],
+       hint:'Два слова: первое — «среда», второе уточняет, чья она.'},
+      {value:300, q:'Приведите пример формального исполнителя, с которым вы знакомы из учебника информатики.',
+       a:'Чертёжник, Черепаха, Робот, Кузнечик, Учитель, Калькулятор и др.',
+       accept:['чертёжник','черепаха','робот','кузнечик','учитель','калькулятор','робот-чертёжник','чёртежник'],
+       hint:'Вспомните исполнителей из учебника: один рисует линии, другой ползает, третий ходит по клеткам.'},
+      {value:400, q:'Чем формальный исполнитель отличается от неформального?',
+       a:'Формальный исполнитель выполняет команды формально, не понимая их смысла; результат зависит только от правильности команды и обстановки.',
+       accept:['формально','не понимает','не понимает смысла','выполняет формально'],
+       hint:'Ключевое слово — как именно он выполняет команды: «вдумчиво» или «как написано».'},
+      {value:500, q:'Как называется полный набор команд, которые может выполнять конкретный исполнитель?',
+       a:'Система команд исполнителя (СКИ)',
+       accept:['ски','система команд исполнителя','система команд'],
+       hint:'Аббревиатура из трёх букв.'}
+    ]
+  },
+  {
+    id:'cmd',
+    name:'Команды исполнителя',
+    questions:[
+      {value:100, q:'Как называется отдельное указание, которое исполнитель может выполнить?',
+       a:'Команда', accept:['команда'],
+       hint:'Одно слово, женский род.'},
+      {value:200, q:'Что произойдёт, если исполнителю дать команду, которой нет в его системе команд?',
+       a:'Исполнитель откажется её выполнять — произойдёт отказ (ошибка).',
+       accept:['отказ','ошибка','откажется','откажется выполнять'],
+       hint:'Исполнитель не сможет выполнить такую команду — случится …'},
+      {value:300, q:'Назовите любую команду исполнителя Чертёжник.',
+       a:'Опусти перо, Подними перо, Сместись на вектор, Сместись в точку и др.',
+       accept:['опусти перо','подними перо','сместись','сместись на вектор','сместись в точку'],
+       hint:'Команды связаны с пером и перемещением.'},
+      {value:400, q:'Что такое алгоритм с точки зрения исполнителя?',
+       a:'Алгоритм — это последовательность команд исполнителя, записанная в порядке их выполнения.',
+       accept:['последовательность команд','последовательность','план действий','порядок команд'],
+       hint:'Это упорядоченный набор … исполнителя.'},
+      {value:500, q:'Назовите две причины, по которым исполнитель может отказать в выполнении команды.',
+       a:'1) Команда не входит в СКИ исполнителя. 2) Условие в среде не позволяет выполнить команду (например, стена перед Роботом).',
+       accept:['ски','среда','не входит','не входит в ски','условие','стена','препятствие'],
+       hint:'Одна причина связана с самим исполнителем, другая — с обстановкой вокруг него.'}
+    ]
+  },
+  {
+    id:'ways',
+    name:'Способы записи алгоритмов',
+    questions:[
+      {value:100, q:'Как называется способ записи алгоритма обычными словами, по шагам (например, рецепт)?',
+       a:'Словесный способ', accept:['словесный','словесный способ'],
+       hint:'Название происходит от слова «слово».'},
+      {value:200, q:'Как называется способ записи алгоритма с помощью рисунков, схем или условных обозначений?',
+       a:'Графический способ', accept:['графический','графический способ'],
+       hint:'Связан с «графой», изображениями.'},
+      {value:300, q:'Как называется способ записи алгоритма на языке программирования?',
+       a:'Программный способ', accept:['программный','программный способ'],
+       hint:'От слова «программа».'},
+      {value:400, q:'Как называется графический способ записи алгоритма, в котором шаги изображаются стандартными фигурами?',
+       a:'Блок-схема', accept:['блок-схема','блок схема','блокхема'],
+       hint:'Два слова через дефис; второе — «схема».'},
+      {value:500, q:'Какой из трёх основных способов записи алгоритмов использует специальные геометрические фигуры, соединённые стрелками?',
+       a:'Графический способ (в виде блок-схемы)', accept:['графический','графический способ','блок-схема','блок схема'],
+       hint:'Способ, который мы изучали на прошлом уроке — через рисунки.'}
+    ]
+  },
+  {
+    id:'flow',
+    name:'Блок-схемы',
+    questions:[
+      {value:100, q:'Какой фигурой в блок-схеме изображают действие (операцию, шаг алгоритма)?',
+       a:'Прямоугольником (или прямоугольным блоком)', accept:['прямоугольник','прямоугольником','прямоугольный блок','блок-прямоугольник'],
+       hint:'Четырёхугольник с прямыми углами.'},
+      {value:200, q:'Какой фигурой в блок-схеме изображают условие (вопрос «да/нет»)?',
+       a:'Ромбом', accept:['ромб','ромбом'],
+       hint:'Четырёхугольник, у которого все стороны равны, но углы не прямые.'},
+      {value:300, q:'Какой фигурой в блок-схеме обозначают начало и конец алгоритма?',
+       a:'Овалом (или скруглённым прямоугольником)', accept:['овал','овалом','скруглённый прямоугольник'],
+       hint:'Фигура, похожая на вытянутое яйцо.'},
+      {value:400, q:'Что показывают стрелки (линии со стрелками) в блок-схеме?',
+       a:'Направление выполнения алгоритма — порядок переходов от одного блока к другому',
+       accept:['направление','порядок','порядок выполнения','направление выполнения','переход','поток управления'],
+       hint:'Они говорят, куда идти дальше.'},
+      {value:500, q:'Какой фигурой в блок-схеме изображают ввод или вывод данных?',
+       a:'Параллелограммом (косым прямоугольником)', accept:['параллелограмм','параллелограммом','косой прямоугольник'],
+       hint:'Четырёхугольник, у которого противоположные стороны параллельны, но углы не прямые.'}
+    ]
+  },
+  {
+    id:'types',
+    name:'Виды алгоритмов',
+    questions:[
+      {value:100, q:'Как называется алгоритм, в котором команды выполняются одна за другой, в указанном порядке, без пропусков и повторений?',
+       a:'Линейный алгоритм', accept:['линейный','линейный алгоритм'],
+       hint:'Название связано со словом «линия».'},
+      {value:200, q:'Как называется алгоритм, в котором выполняется одна из нескольких команд в зависимости от условия?',
+       a:'Разветвляющийся алгоритм', accept:['разветвляющийся','разветвляющийся алгоритм','ветвление','алгоритм-ветвление'],
+       hint:'В нём есть «вилка» — выбор пути.'},
+      {value:300, q:'Как называется алгоритм, в котором одни и те же команды повторяются много раз?',
+       a:'Циклический алгоритм', accept:['циклический','циклический алгоритм','цикл','алгоритм-цикл'],
+       hint:'Название связано со словом «цикл» — повторение.'},
+      {value:400, q:'Приведите пример линейного алгоритма из повседневной жизни.',
+       a:'Рецепт, порядок сбора портфеля, последовательность утренних дел, порядок перехода дороги и др.',
+       accept:['рецепт','портфель','утро','дорога','завтрак','одевание','сбор','путь','порядок'],
+       hint:'Что-то, что вы делаете по шагам, без выбора и повторений.'},
+      {value:500, q:'Какое ключевое слово указывает на то, что алгоритм — разветвляющийся?',
+       a:'«Если … то … иначе …»', accept:['если','если то','если то иначе','if'],
+       hint:'Союз, с которого начинается условие.'}
+    ]
+  }
+];
+
+const TOTAL_QUESTIONS = CATEGORIES.reduce((s,c)=>s+c.questions.length,0);
+const MAX_SCORE = CATEGORIES.reduce((s,c)=>s+c.questions.reduce((a,q)=>a+q.value,0),0);
+
+/* ---------- СОСТОЯНИЕ ---------- */
+const STORAGE_KEY = 'jeopardy_algorithms_v2';
+
+const state = {
+  screen:'start',       // 'start' | 'board' | 'final'
+  score:0,
+  answered:{},          // { 'exec_100': 'correct' | 'wrong', ... }
+  correctCount:0,
+  wrongCount:0,
+  currentQ:null,        // { cat, q }
+  phase:'ask',          // 'ask' | 'revealed'
+  lastUserAnswer:'',
+  lastResult:null       // 'correct' | 'wrong' | null
+};
+
+/* ---------- УТИЛИТЫ ---------- */
+function normalize(s){
+  return (s||'').toLowerCase().trim()
+    .replace(/ё/g,'е')
+    .replace(/\s+/g,' ')
+    .replace(/[.!?,;:()]/g,' ');
+}
+function checkAnswer(user, accept){
+  const u = normalize(user);
+  if(!u) return false;
+  return accept.some(opt=>{
+    const o = normalize(opt);
+    if(u===o) return true;
+    if(o.length>=4 && u.includes(o)) return true;
+    if(u.length>=4 && o.includes(u)) return true;
+    return false;
+  });
+}
+function saveState(){
+  try{
+    const data = {
+      score:state.score,
+      answered:state.answered,
+      correctCount:state.correctCount,
+      wrongCount:state.wrongCount,
+      screen:state.screen
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }catch(e){/* ignore */}
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return false;
+    const data = JSON.parse(raw);
+    if(!data || typeof data!=='object') return false;
+    state.score = data.score || 0;
+    state.answered = data.answered || {};
+    state.correctCount = data.correctCount || 0;
+    state.wrongCount = data.wrongCount || 0;
+    state.screen = data.screen || 'start';
+    return true;
+  }catch(e){ return false; }
+}
+function clearState(){
+  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+}
+
+/* ---------- РЕНДЕР ---------- */
+const app = document.getElementById('app');
+
+function render(){
+  app.innerHTML = '';
+  app.appendChild(renderHeader());
+
+  const main = document.createElement('main');
+  main.setAttribute('role','main');
+
+  if(state.screen==='start') main.appendChild(renderStartScreen());
+  else if(state.screen==='board') main.appendChild(renderBoardScreen());
+  else if(state.screen==='final') main.appendChild(renderFinalScreen());
+
+  app.appendChild(main);
+
+  if(state.currentQ){
+    app.appendChild(renderModal());
+  }
+}
+
+function renderHeader(){
+  const header = document.createElement('header');
+  header.className = 'app-header';
+  header.setAttribute('role','banner');
+
+  const inner = document.createElement('div');
+  inner.className = 'header-inner';
+
+  const brand = document.createElement('div');
+  brand.className = 'brand';
+  const mark = document.createElement('span');
+  mark.className = 'brand-mark';
+  mark.setAttribute('aria-hidden','true');
+  mark.textContent = '🧩';
+  const title = document.createElement('span');
+  title.textContent = 'Своя Игра · Алгоритмы';
+  brand.appendChild(mark);
+  brand.appendChild(title);
+
+  const pill = document.createElement('div');
+  pill.className = 'score-pill';
+  pill.setAttribute('aria-live','polite');
+  const lbl = document.createElement('span');
+  lbl.textContent = 'Очки:';
+  const val = document.createElement('span');
+  val.className = 'score-value';
+  val.textContent = String(state.score);
+  pill.appendChild(lbl);
+  pill.appendChild(val);
+
+  inner.appendChild(brand);
+  inner.appendChild(pill);
+  header.appendChild(inner);
+  return header;
+}
+
+/* --- Стартовый экран --- */
+function renderStartScreen(){
+  const wrap = document.createElement('section');
+  wrap.className = 'screen active';
+  wrap.setAttribute('aria-label','Начало игры');
+
+  const hero = document.createElement('div');
+  hero.className = 'hero';
+
+  const h1 = document.createElement('h1');
+  h1.textContent = 'Добро пожаловать в Свою Игру!';
+  hero.appendChild(h1);
+
+  const sub = document.createElement('p');
+  sub.className = 'subtitle';
+  sub.textContent = 'Тема: «Алгоритмы, исполнители, способы записи и виды алгоритмов». Информатика, 5 класс.';
+  hero.appendChild(sub);
+
+  const grid = document.createElement('div');
+  grid.className = 'hero-grid';
+
+  // Правила
+  const rules = document.createElement('div');
+  rules.className = 'rules-card';
+  const rH = document.createElement('h2');
+  rH.textContent = '📋 Как играть';
+  rules.appendChild(rH);
+  const ol = document.createElement('ol');
+  [
+    'В игре 5 категорий и 25 вопросов стоимостью от 100 до 500 баллов.',
+    'Выбирайте ячейку на игровом поле — появится вопрос.',
+    'Введите свой ответ и нажмите «Показать ответ».',
+    'Если ответ верный — баллы начислятся автоматически.',
+    'Цель — набрать как можно больше баллов, ответив на все 25 вопросов.'
+  ].forEach(t=>{
+    const li = document.createElement('li');
+    li.textContent = t;
+    ol.appendChild(li);
+  });
+  rules.appendChild(ol);
+  grid.appendChild(rules);
+
+  // Информационная карточка
+  const info = document.createElement('div');
+  info.className = 'info-card';
+  const iH = document.createElement('h2');
+  iH.textContent = '🎯 О игре';
+  info.appendChild(iH);
+  const ul = document.createElement('ul');
+  ul.className = 'info-list';
+  [
+    {l:'Категорий', v:'5'},
+    {l:'Вопросов всего', v:String(TOTAL_QUESTIONS)},
+    {l:'Максимум баллов', v:String(MAX_SCORE)},
+    {l:'Стоимость вопросов', v:'100 – 500'}
+  ].forEach(item=>{
+    const li = document.createElement('li');
+    const k = document.createElement('span');
+    k.textContent = item.l;
+    const v = document.createElement('span');
+    v.className = 'val';
+    v.textContent = item.v;
+    li.appendChild(k);
+    li.appendChild(v);
+    ul.appendChild(li);
+  });
+  info.appendChild(ul);
+
+  const hasSave = Object.keys(state.answered).length>0;
+  if(hasSave){
+    const hint = document.createElement('div');
+    hint.style.marginTop = '14px';
+    hint.style.padding = '10px 12px';
+    hint.style.background = 'var(--accent-soft)';
+    hint.style.borderRadius = 'var(--radius-sm)';
+    hint.style.fontSize = '.9rem';
+    hint.style.color = 'var(--accent-dark)';
+    hint.textContent = '💾 Найдено сохранение: ' + Object.keys(state.answered).length + ' из ' + TOTAL_QUESTIONS + ' вопросов. Нажмите «Продолжить», чтобы вернуться к игре.';
+    info.appendChild(hint);
+  }
+
+  grid.appendChild(info);
+
+  hero.appendChild(grid);
+
+  // Кнопки
+  const btnRow = document.createElement('div');
+  btnRow.className = 'btn-row mt-12';
+  btnRow.style.marginTop = '20px';
+
+  const startBtn = document.createElement('button');
+  startBtn.type = 'button';
+  startBtn.className = 'btn btn-primary';
+  startBtn.textContent = '▶ Начать игру';
+  startBtn.addEventListener('click', handleStart);
+  btnRow.appendChild(startBtn);
+
+  if(hasSave){
+    const contBtn = document.createElement('button');
+    contBtn.type = 'button';
+    contBtn.className = 'btn btn-secondary';
+    contBtn.textContent = '↻ Продолжить';
+    contBtn.addEventListener('click', ()=>{
+      state.screen = 'board';
+      saveState();
+      render();
+    });
+    btnRow.appendChild(contBtn);
+
+    const resetBtn = document.createElement('button');
+    resetBtn.type = 'button';
+    resetBtn.className = 'btn btn-ghost';
+    resetBtn.textContent = 'Сбросить прогресс';
+    resetBtn.addEventListener('click', ()=>{
+      if(confirm('Сбросить весь прогресс и начать заново?')){
+        clearState();
+        state.screen='start';
+        state.score=0;
+        state.answered={};
+        state.correctCount=0;
+        state.wrongCount=0;
+        render();
+      }
+    });
+    btnRow.appendChild(resetBtn);
+  }
+
+  hero.appendChild(btnRow);
+
+  wrap.appendChild(hero);
+  return wrap;
+}
+
+/* --- Игровое поле --- */
+function renderBoardScreen(){
+  const wrap = document.createElement('section');
+  wrap.className = 'screen active';
+  wrap.setAttribute('aria-label','Игровое поле');
+
+  const answeredCount = Object.keys(state.answered).length;
+  const progress = document.createElement('div');
+  progress.className = 'progress-bar';
+  const pLabel = document.createElement('span');
+  pLabel.textContent = `Вопросов отвечено: ${answeredCount} из ${TOTAL_QUESTIONS}`;
+  const pTrack = document.createElement('div');
+  pTrack.className = 'progress-track';
+  pTrack.setAttribute('role','progressbar');
+  pTrack.setAttribute('aria-valuemin','0');
+  pTrack.setAttribute('aria-valuemax', String(TOTAL_QUESTIONS));
+  pTrack.setAttribute('aria-valuenow', String(answeredCount));
+  const pFill = document.createElement('div');
+  pFill.className = 'progress-fill';
+  pFill.style.width = ((answeredCount/TOTAL_QUESTIONS)*100)+'%';
+  pTrack.appendChild(pFill);
+  progress.appendChild(pLabel);
+  progress.appendChild(pTrack);
+  wrap.appendChild(progress);
+
+  const toolbar = document.createElement('div');
+  toolbar.className = 'btn-row';
+  toolbar.style.marginBottom = '14px';
+
+  const finishBtn = document.createElement('button');
+  finishBtn.type = 'button';
+  finishBtn.className = 'btn btn-secondary';
+  finishBtn.textContent = '🏁 Завершить игру';
+  finishBtn.addEventListener('click', ()=>{
+    if(confirm('Завершить игру и посмотреть результат?')){
+      state.screen = 'final';
+      saveState();
+      render();
+    }
+  });
+  toolbar.appendChild(finishBtn);
+
+  const resetBtn = document.createElement('button');
+  resetBtn.type = 'button';
+  resetBtn.className = 'btn btn-ghost';
+  resetBtn.textContent = 'Сбросить';
+  resetBtn.addEventListener('click', ()=>{
+    if(confirm('Сбросить прогресс и начать заново?')){
+      clearState();
+      state.screen='start';
+      state.score=0;
+      state.answered={};
+      state.correctCount=0;
+      state.wrongCount=0;
+      render();
+    }
+  });
+  toolbar.appendChild(resetBtn);
+  wrap.appendChild(toolbar);
+
+  const boardWrap = document.createElement('div');
+  boardWrap.className = 'board-wrap';
+  const board = document.createElement('div');
+  board.className = 'board';
+  board.setAttribute('role','grid');
+  board.setAttribute('aria-label','Игровое поле Своей Игры');
+
+  CATEGORIES.forEach(cat=>{
+    const head = document.createElement('div');
+    head.className = 'cat-head';
+    head.setAttribute('role','columnheader');
+    head.textContent = cat.name;
+    board.appendChild(head);
+  });
+
+  const values = [100,200,300,400,500];
+  values.forEach(val=>{
+    CATEGORIES.forEach(cat=>{
+      const q = cat.questions.find(x=>x.value===val);
+      const cell = document.createElement('button');
+      cell.type = 'button';
+      cell.className = 'cell';
+      cell.textContent = String(val);
+      const key = cat.id+'_'+val;
+      cell.setAttribute('role','gridcell');
+      cell.setAttribute('aria-label', `${cat.name}, ${val} баллов`);
+      if(state.answered[key]){
+        cell.disabled = true;
+        cell.setAttribute('aria-disabled','true');
+      } else {
+        cell.addEventListener('click', ()=>openQuestion(cat, q));
+      }
+      board.appendChild(cell);
+    });
+  });
+
+  boardWrap.appendChild(board);
+  wrap.appendChild(boardWrap);
+
+  const hint = document.createElement('p');
+  hint.style.textAlign = 'center';
+  hint.style.color = 'var(--text-muted)';
+  hint.style.marginTop = '14px';
+  hint.style.fontSize = '.9rem';
+  hint.textContent = '💡 Выберите ячейку, чтобы открыть вопрос. Отвеченные вопросы отмечены галочкой.';
+  wrap.appendChild(hint);
+
+  return wrap;
+}
+
+/* --- Модальное окно вопроса --- */
+function renderModal(){
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay active';
+  overlay.setAttribute('role','dialog');
+  overlay.setAttribute('aria-modal','true');
+  overlay.setAttribute('aria-label','Вопрос');
+
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+
+  const { cat, q } = state.currentQ;
+
+  // Шапка
+  const header = document.createElement('div');
+  header.className = 'modal-header';
+  const left = document.createElement('div');
+  const catLbl = document.createElement('div');
+  catLbl.className = 'cat-label';
+  catLbl.textContent = cat.name;
+  const valLbl = document.createElement('span');
+  valLbl.className = 'value-label';
+  valLbl.textContent = q.value + ' баллов';
+  left.appendChild(catLbl);
+  left.appendChild(valLbl);
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'modal-close';
+  closeBtn.setAttribute('aria-label','Закрыть');
+  closeBtn.textContent = '×';
+  closeBtn.addEventListener('click', closeModal);
+
+  header.appendChild(left);
+  header.appendChild(closeBtn);
+  modal.appendChild(header);
+
+  // Тело
+  const body = document.createElement('div');
+  body.className = 'modal-body';
+
+  const qText = document.createElement('p');
+  qText.className = 'question-text';
+  qText.textContent = q.q;
+  body.appendChild(qText);
+
+  // Поле ответа
+  const ansArea = document.createElement('div');
+  ansArea.className = 'answer-area';
+  const lbl = document.createElement('label');
+  lbl.setAttribute('for','user-answer');
+  lbl.textContent = 'Ваш ответ';
+  const inp = document.createElement('input');
+  inp.type = 'text';
+  inp.id = 'user-answer';
+  inp.maxLength = 200;
+  inp.placeholder = 'Введите ответ…';
+  inp.value = state.lastUserAnswer;
+  inp.disabled = state.phase==='revealed';
+  ansArea.appendChild(lbl);
+  ansArea.appendChild(inp);
+  body.appendChild(ansArea);
+
+  // Подсказка
+  const hintBox = document.createElement('div');
+  hintBox.className = 'explanation show';
+  hintBox.style.background = '#fef9c3';
+  hintBox.style.borderLeftColor = 'var(--warning)';
+  const hintStrong = document.createElement('strong');
+  hintStrong.textContent = '💡 Подсказка: ';
+  const hintText = document.createElement('span');
+  hintText.textContent = q.hint;
+  hintBox.appendChild(hintStrong);
+  hintBox.appendChild(hintText);
+  body.appendChild(hintBox);
+
+  // Результат
+  const resultBox = document.createElement('div');
+  resultBox.className = 'result-box';
+  resultBox.setAttribute('role','status');
+  resultBox.setAttribute('aria-live','polite');
+  if(state.phase==='revealed' && state.lastResult){
+    resultBox.classList.add('show', state.lastResult);
+    const title = document.createElement('strong');
+    if(state.lastResult==='correct'){
+      title.textContent = `✅ Верно! +${q.value} баллов`;
+    } else {
+      title.textContent = '❌ Неверно';
+    }
+    resultBox.appendChild(title);
+
+    const ansLine = document.createElement('div');
+    ansLine.textContent = 'Правильный ответ: ' + q.a;
+    resultBox.appendChild(ansLine);
+  }
+  body.appendChild(resultBox);
+
+  // Пояснение
+  const expl = document.createElement('div');
+  expl.className = 'explanation';
+  if(state.phase==='revealed'){
+    expl.classList.add('show');
+    const eStrong = document.createElement('strong');
+    eStrong.textContent = '📘 Пояснение: ';
+    const eText = document.createElement('span');
+    eText.textContent = q.hint + ' Полный ответ: ' + q.a;
+    expl.appendChild(eStrong);
+    expl.appendChild(eText);
+  }
+  body.appendChild(expl);
+
+  modal.appendChild(body);
+
+  // Подвал
+  const footer = document.createElement('div');
+  footer.className = 'modal-footer';
+
+  if(state.phase==='ask'){
+    const showBtn = document.createElement('button');
+    showBtn.type = 'button';
+    showBtn.className = 'btn btn-primary';
+    showBtn.textContent = 'Показать ответ';
+    showBtn.addEventListener('click', ()=>{
+      const val = inp.value;
+      state.lastUserAnswer = val;
+      revealAnswer(val);
+    });
+    footer.appendChild(showBtn);
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.className = 'btn btn-secondary';
+    cancelBtn.textContent = 'Отмена';
+    cancelBtn.addEventListener('click', closeModal);
+    footer.appendChild(cancelBtn);
+  } else {
+    // Фаза revealed — только кнопка «Продолжить»
+    const nextBtn = document.createElement('button');
+    nextBtn.type = 'button';
+    nextBtn.className = 'btn btn-primary';
+    nextBtn.textContent = 'Продолжить →';
+    nextBtn.addEventListener('click', closeAfterReveal);
+    footer.appendChild(nextBtn);
+  }
+
+  modal.appendChild(footer);
+  overlay.appendChild(modal);
+
+  overlay.addEventListener('click', (e)=>{
+    if(e.target===overlay){
+      if(state.phase==='revealed') closeAfterReveal();
+      else closeModal();
+    }
+  });
+
+  const escHandler = (e)=>{
+    if(e.key==='Escape'){
+      if(state.phase==='revealed') closeAfterReveal();
+      else closeModal();
+      document.removeEventListener('keydown', escHandler);
+    }
+  };
+  document.addEventListener('keydown', escHandler);
+
+  // Enter в поле ввода — показать ответ
+  const enterHandler = (e)=>{
+    if(e.key==='Enter' && state.phase==='ask'){
+      e.preventDefault();
+      state.lastUserAnswer = inp.value;
+      revealAnswer(inp.value);
+      document.removeEventListener('keydown', enterHandler);
+    }
+  };
+  document.addEventListener('keydown', enterHandler);
+
+  setTimeout(()=>{
+    if(state.phase==='ask') inp.focus();
+  }, 50);
+
+  return overlay;
+}
+
+/* --- Финальный экран --- */
+function renderFinalScreen(){
+  const wrap = document.createElement('section');
+  wrap.className = 'screen active';
+  wrap.setAttribute('aria-label','Итоги игры');
+
+  const card = document.createElement('div');
+  card.className = 'final-card';
+
+  const icon = document.createElement('div');
+  icon.className = 'final-icon';
+  icon.setAttribute('aria-hidden','true');
+  icon.textContent = '🏆';
+  card.appendChild(icon);
+
+  const h2 = document.createElement('h2');
+  h2.textContent = 'Игра окончена!';
+  card.appendChild(h2);
+
+  const sub = document.createElement('p');
+  sub.className = 'subtitle';
+  sub.textContent = 'Вот ваши результаты по теме «Алгоритмы»';
+  card.appendChild(sub);
+
+  const scoreBox = document.createElement('div');
+  scoreBox.className = 'final-score';
+  const lbl = document.createElement('div');
+  lbl.className = 'label';
+  lbl.textContent = 'Ваш результат';
+  const val = document.createElement('div');
+  val.className = 'value';
+  val.textContent = state.score;
+  const max = document.createElement('div');
+  max.className = 'max';
+  max.textContent = `из ${MAX_SCORE} возможных баллов`;
+  scoreBox.appendChild(lbl);
+  scoreBox.appendChild(val);
+  scoreBox.appendChild(max);
+  card.appendChild(scoreBox);
+
+  const answeredCount = Object.keys(state.answered).length;
+  const stats = document.createElement('div');
+  stats.className = 'stats-grid';
+  [
+    {n:state.correctCount, l:'Верных'},
+    {n:state.wrongCount, l:'Неверных'},
+    {n:answeredCount, l:'Всего вопросов'}
+  ].forEach(s=>{
+    const st = document.createElement('div');
+    st.className = 'stat';
+    const n = document.createElement('div');
+    n.className = 'num';
+    n.textContent = String(s.n);
+    const l = document.createElement('div');
+    l.className = 'lbl';
+    l.textContent = s.l;
+    st.appendChild(n);
+    st.appendChild(l);
+    stats.appendChild(st);
+  });
+  card.appendChild(stats);
+
+  const verdict = document.createElement('div');
+  verdict.className = 'final-verdict';
+  const pct = MAX_SCORE>0 ? (state.score/MAX_SCORE)*100 : 0;
+  let msg = '';
+  if(pct>=90) msg = '🌟 Великолепно! Вы отлично разобрались в теме алгоритмов!';
+  else if(pct>=70) msg = '👍 Хороший результат! Ещё немного практики — и будет идеально.';
+  else if(pct>=50) msg = '📘 Неплохо! Повторите способы записи алгоритмов и виды алгоритмов.';
+  else if(pct>=25) msg = '📖 Стоит повторить тему: исполнители, команды и блок-схемы.';
+  else msg = '💪 Не расстраивайтесь! Перечитайте параграфы учебника и попробуйте снова.';
+  verdict.textContent = msg;
+  card.appendChild(verdict);
+
+  const btnRow = document.createElement('div');
+  btnRow.className = 'btn-row';
+
+  const againBtn = document.createElement('button');
+  againBtn.type = 'button';
+  againBtn.className = 'btn btn-primary';
+  againBtn.textContent = '🔄 Играть снова';
+  againBtn.addEventListener('click', ()=>{
+    if(confirm('Начать новую игру? Прогресс будет сброшен.')){
+      clearState();
+      state.screen='start';
+      state.score=0;
+      state.answered={};
+      state.correctCount=0;
+      state.wrongCount=0;
+      render();
+    }
+  });
+
+  const backBtn = document.createElement('button');
+  backBtn.type = 'button';
+  backBtn.className = 'btn btn-secondary';
+  backBtn.textContent = '← Вернуться к полю';
+  backBtn.addEventListener('click', ()=>{
+    state.screen = 'board';
+    saveState();
+    render();
+  });
+
+  btnRow.appendChild(againBtn);
+  btnRow.appendChild(backBtn);
+  card.appendChild(btnRow);
+
+  wrap.appendChild(card);
+  return wrap;
+}
+
+/* ---------- ОБРАБОТЧИКИ ---------- */
+function handleStart(){
+  state.screen = 'board';
+  saveState();
+  render();
+}
+
+function openQuestion(cat, q){
+  state.currentQ = { cat, q };
+  state.phase = 'ask';
+  state.lastUserAnswer = '';
+  state.lastResult = null;
+  render();
+}
+
+/* Показ ответа: автоматическая проверка и начисление баллов при верном ответе */
+function revealAnswer(userAnswer){
+  if(!state.currentQ) return;
+  const { cat, q } = state.currentQ;
+  const key = cat.id + '_' + q.value;
+
+  const isCorrect = checkAnswer(userAnswer, q.accept);
+  state.lastResult = isCorrect ? 'correct' : 'wrong';
+  state.phase = 'revealed';
+
+  // Помечаем вопрос как отвеченный
+  state.answered[key] = isCorrect ? 'correct' : 'wrong';
+
+  if(isCorrect){
+    // Автоматически начисляем очки
+    state.score += q.value;
+    state.correctCount += 1;
+  } else {
+    state.wrongCount += 1;
+  }
+
+  saveState();
+  render();
+}
+
+/* Закрытие модалки после показа ответа */
+function closeAfterReveal(){
+  state.currentQ = null;
+  state.phase = 'ask';
+  state.lastUserAnswer = '';
+  state.lastResult = null;
+
+  // Если все вопросы отвечены — автоматически на финал
+  if(Object.keys(state.answered).length >= TOTAL_QUESTIONS){
+    state.screen = 'final';
+    saveState();
+  }
+  render();
+}
+
+/* Закрытие модалки без ответа (отмена) — вопрос остаётся доступным */
+function closeModal(){
+  state.currentQ = null;
+  state.phase = 'ask';
+  state.lastUserAnswer = '';
+  state.lastResult = null;
+  render();
+}
+
+/* ---------- ИНИЦИАЛИЗАЦИЯ ---------- */
+function init(){
+  const restored = loadState();
+  if(restored && state.screen==='board' && Object.keys(state.answered).length>0){
+    // Показываем стартовый экран с кнопкой «Продолжить»
+    state.screen = 'start';
+  }
+  render();
+}
+
+init();
+</script>
+</body>
+</html>
